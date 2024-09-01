@@ -1,0 +1,11 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Chore Management",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Chores",
+  "start_url": "/",
+  "theme_color": "#ffffff"
+}
