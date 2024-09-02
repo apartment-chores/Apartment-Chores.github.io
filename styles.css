@@ -1,8 +1,17 @@
 /* Reset margin and padding for all elements */
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
+    box-sizing: inherit;
+    /* Changed to 'inherit' for easier global adjustments */
+}
+
+html {
     box-sizing: border-box;
+    font-size: 100%;
+    /* Easier control over rem units */
 }
 
 /* Ensure html and body take up full height */
@@ -19,26 +28,30 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column;
-    /* Align children in a column */
+    line-height: 1.6;
+    /* Improved readability */
+    color: #333;
+    /* Consistent text color */
 }
 
 /* Container styling */
 .container {
     flex: 1;
-    /* Allow container to grow and fill available space */
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Center items horizontally */
     justify-content: center;
-    /* Center items vertically */
+    padding: 20px;
+    /* Added padding for spacing */
 }
 
 /* Header styling */
 h1 {
     margin-bottom: 20px;
-    font-size: 22px;
-    color: #333;
+    font-size: 1.6rem;
+    /* Use rem for responsive sizing */
+    color: inherit;
+    /* Inherit text color */
 }
 
 /* Accordion container */
@@ -46,71 +59,72 @@ h1 {
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 800px;
+    /* Limit the accordion container width */
 }
 
 /* Accordion button styling */
 .accordion {
     background-color: #6e9a8d;
-    /* Green color */
     color: #fff;
     cursor: pointer;
     padding: 16px;
-    /* Increased padding */
     border: none;
     border-radius: 4px;
     text-align: left;
-    font-size: 18px;
+    font-size: 1.125rem;
+    /* Use rem for responsive sizing */
     margin-bottom: 8px;
-    /* Increased spacing */
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: background-color 0.3s ease;
+    /* Smooth transition */
 }
 
 .accordion.active,
 .accordion:hover {
     background-color: #5b7b6f;
-    /* Darker green for hover/active state */
 }
 
 /* Arrow styling for accordion */
 .accordion::after {
     content: '\25BC';
-    /* Down arrow */
-    font-size: 16px;
+    font-size: 1rem;
+    /* Use rem for responsive sizing */
     transition: transform 0.3s ease;
 }
 
 .accordion.active::after {
     transform: rotate(-180deg);
-    /* Rotate arrow */
 }
 
 /* Panel styling */
 .panel {
     padding: 16px;
-    /* Increased padding */
     background-color: #f1f1f1;
     display: none;
     border-radius: 4px;
     margin-bottom: 12px;
-    /* Increased spacing */
+    transition: max-height 0.3s ease;
+    /* Smooth panel expansion */
+    overflow: hidden;
+    /* Hide overflow during animation */
 }
 
 /* List item styling */
 li {
     background-color: #fff;
     margin-bottom: 12px;
-    /* Increased spacing */
     padding: 16px;
-    /* Increased padding */
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Add subtle shadow */
 }
 
-/* Completed chore styling */
 li.completed {
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
@@ -140,21 +154,21 @@ input[type="checkbox"] {
 /* Reset button styling */
 .reset-button {
     background-color: #f44336;
-    /* Red color */
     color: white;
     border: none;
     padding: 16px;
-    /* Increased padding */
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1rem;
+    /* Use rem for responsive sizing */
     width: 100%;
     margin-top: 20px;
+    transition: background-color 0.3s ease;
+    /* Smooth transition */
 }
 
 .reset-button:hover {
     background-color: #c62828;
-    /* Darker red for hover state */
 }
 
 /* Footer styling */
@@ -163,7 +177,8 @@ footer {
     padding: 10px 20px;
     text-align: center;
     border-top: 1px solid #ddd;
-    font-size: 14px;
+    font-size: 0.875rem;
+    /* Use rem for responsive sizing */
 }
 
 footer a {
@@ -175,13 +190,11 @@ footer a {
 
 footer a:hover {
     color: #007bff;
-    /* Blue color for hover effect */
     text-decoration: underline;
 }
 
 footer a:focus {
     outline: 2px solid #007bff;
-    /* Blue outline for focus state */
 }
 
 /* Dark mode styles */
@@ -192,7 +205,7 @@ footer a:focus {
     }
 
     h1 {
-        color: #e0e0e0;
+        color: inherit;
     }
 
     .accordion {
@@ -237,12 +250,10 @@ footer a:focus {
 
     footer a:hover {
         color: #66aaff;
-        /* Light blue color for hover effect in dark mode */
     }
 
     footer a:focus {
         outline: 2px solid #66aaff;
-        /* Light blue outline for focus state in dark mode */
     }
 }
 
@@ -254,15 +265,17 @@ footer a:focus {
     }
 
     h1 {
-        font-size: 26px;
+        font-size: 2rem;
+        /* Increased size for larger screens */
     }
 
     .accordion {
-        font-size: 20px;
+        font-size: 1.25rem;
+        /* Adjusted size for larger screens */
     }
 
     footer {
-        font-size: 16px;
+        font-size: 1rem;
         /* Slightly larger font size on larger screens */
     }
 }
