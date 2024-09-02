@@ -37,18 +37,18 @@ const allowedRoommates = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const accordionContainer = document.getElementById('accordion-container');
+
     // Load roommates from Firestore
     const roommatesSnapshot = await getDocs(collection(db, "roommates"));
     roommates = roommatesSnapshot.docs.map(doc => doc.data().name);
 
     // Load and sort chores from Firestore
     const choresSnapshot = await getDocs(collection(db, "chores"));
-    const allChores = [];
     const chores = {};
 
     choresSnapshot.forEach((doc) => {
         const data = doc.data();
-        allChores.push(data);
         if (!chores[data.category]) {
             chores[data.category] = [];
         }
@@ -69,6 +69,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const panel = document.createElement('div');
             panel.classList.add('panel');
+
+            // Remove progress bar code
+            // const progressContainer = document.createElement('div');
+            // progressContainer.classList.add('progress-container');
+            // const progressBar = document.createElement('div');
+            // progressBar.classList.add('progress-bar');
+            // progressContainer.appendChild(progressBar);
+            // panel.appendChild(progressContainer);
 
             // Sort chores within each category by the 'order' field
             const sortedChores = chores[category].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -95,6 +103,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         } else {
                             li.classList.remove('completed');
                         }
+                        // Remove progress bar update
+                        // updateProgressBar(category, sortedChores, progressBar);
                     } catch (error) {
                         console.error("Error updating chore:", error);
                     }
@@ -164,6 +174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     panel.style.display = "block";
                 }
             });
+
+            // Remove progress bar initialization
+            // updateProgressBar(category, sortedChores, progressBar);
         }
     });
 

@@ -41,31 +41,6 @@ h1 {
     color: #333;
 }
 
-/* Progress bar wrapper styling */
-.progress-wrapper {
-    width: 100%;
-    background-color: #e0e0e0;
-    /* Light grey background */
-    border-radius: 5px;
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-
-/* Progress bar styling */
-.overall-progress-bar {
-    height: 24px;
-    width: 0%;
-    /* Start with 0% width */
-    background-color: #4caf50;
-    /* Green color */
-    text-align: center;
-    line-height: 24px;
-    /* Center the text vertically */
-    color: white;
-    border-radius: 5px 0 0 5px;
-    transition: width 0.4s ease;
-}
-
 /* Accordion container */
 .accordion-container {
     display: flex;
@@ -218,14 +193,6 @@ footer a:focus {
 
     h1 {
         color: #e0e0e0;
-    }
-
-    .progress-wrapper {
-        background-color: #333;
-    }
-
-    .overall-progress-bar {
-        background-color: #2c6d3f;
     }
 
     .accordion {
