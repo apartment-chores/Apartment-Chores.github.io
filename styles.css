@@ -5,6 +5,12 @@
     box-sizing: border-box;
 }
 
+/* Ensure html and body take up full height */
+html,
+body {
+    height: 100%;
+}
+
 /* Basic styling for body */
 body {
     font-family: Arial, sans-serif;
@@ -12,10 +18,20 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    /* Align children in a column */
+}
+
+/* Container styling */
+.container {
+    flex: 1;
+    /* Allow container to grow and fill available space */
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Center items horizontally */
+    justify-content: center;
+    /* Center items vertically */
 }
 
 /* Header styling */
@@ -147,7 +163,6 @@ footer {
     padding: 10px 20px;
     text-align: center;
     border-top: 1px solid #ddd;
-    margin-top: 20px;
     font-size: 14px;
 }
 
