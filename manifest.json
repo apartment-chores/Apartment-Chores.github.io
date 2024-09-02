@@ -24,7 +24,8 @@
     {
       "name": "View my Chores",
       "url": "/chore-lookup.html",
-      "description": "View chores you have been assigned"
+      "description": "View chores you have been assigned",
+      "icons": [{ "src": "https://Apartment-Chores.github.io/icons/android-chrome-512x512.png", "sizes": "512x512" }]
     }
   ]
 }
