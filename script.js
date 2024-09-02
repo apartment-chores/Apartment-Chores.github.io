@@ -37,17 +37,6 @@ const allowedRoommates = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const accordionContainer = document.getElementById('accordion-container');
-    const overallProgressBar = document.getElementById('overall-progress-bar');
-
-    // Function to update the overall progress bar
-    function updateOverallProgress(chores) {
-        const totalChores = chores.length;
-        const completedChores = chores.filter(chore => chore.completed).length;
-        const progressPercentage = (completedChores / totalChores) * 100;
-        overallProgressBar.style.width = `${progressPercentage}%`;
-    }
-
     // Load roommates from Firestore
     const roommatesSnapshot = await getDocs(collection(db, "roommates"));
     roommates = roommatesSnapshot.docs.map(doc => doc.data().name);
@@ -68,9 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             id: doc.id
         });
     });
-
-    // Initial update of the overall progress bar
-    updateOverallProgress(allChores);
 
     // Sort categories alphabetically
     const sortedCategories = Object.keys(chores).sort();
@@ -109,9 +95,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         } else {
                             li.classList.remove('completed');
                         }
-                        // Update the overall progress bar whenever a chore is checked or unchecked
-                        chore.completed = checkbox.checked;
-                        updateOverallProgress(allChores);
                     } catch (error) {
                         console.error("Error updating chore:", error);
                     }
@@ -202,9 +185,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await batch.commit();
                 alert("All chores have been cleared.");
                 location.reload(); // Refresh the page to reflect changes
-
-                // Reset the overall progress bar after resetting chores
-                overallProgressBar.style.width = '0%';
             } catch (error) {
                 console.error("Error clearing chores:", error);
             }
