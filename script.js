@@ -38,6 +38,15 @@ const allowedRoommates = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const accordionContainer = document.getElementById('accordion-container');
+    const overallProgressBar = document.getElementById('overall-progress-bar');
+
+    // Function to update the overall progress bar
+    function updateOverallProgress(chores) {
+        const totalChores = chores.length;
+        const completedChores = chores.filter(chore => chore.completed).length;
+        const progressPercentage = (completedChores / totalChores) * 100;
+        overallProgressBar.style.width = `${progressPercentage}%`;
+    }
 
     // Load roommates from Firestore
     const roommatesSnapshot = await getDocs(collection(db, "roommates"));
@@ -45,10 +54,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load and sort chores from Firestore
     const choresSnapshot = await getDocs(collection(db, "chores"));
+    const allChores = [];
     const chores = {};
 
     choresSnapshot.forEach((doc) => {
         const data = doc.data();
+        allChores.push(data);
         if (!chores[data.category]) {
             chores[data.category] = [];
         }
@@ -57,6 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             id: doc.id
         });
     });
+
+    // Initial update of the overall progress bar
+    updateOverallProgress(allChores);
 
     // Sort categories alphabetically
     const sortedCategories = Object.keys(chores).sort();
@@ -69,14 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const panel = document.createElement('div');
             panel.classList.add('panel');
-
-            // Remove progress bar code
-            // const progressContainer = document.createElement('div');
-            // progressContainer.classList.add('progress-container');
-            // const progressBar = document.createElement('div');
-            // progressBar.classList.add('progress-bar');
-            // progressContainer.appendChild(progressBar);
-            // panel.appendChild(progressContainer);
 
             // Sort chores within each category by the 'order' field
             const sortedChores = chores[category].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -103,8 +109,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         } else {
                             li.classList.remove('completed');
                         }
-                        // Remove progress bar update
-                        // updateProgressBar(category, sortedChores, progressBar);
+                        // Update the overall progress bar whenever a chore is checked or unchecked
+                        chore.completed = checkbox.checked;
+                        updateOverallProgress(allChores);
                     } catch (error) {
                         console.error("Error updating chore:", error);
                     }
@@ -174,9 +181,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     panel.style.display = "block";
                 }
             });
-
-            // Remove progress bar initialization
-            // updateProgressBar(category, sortedChores, progressBar);
         }
     });
 
@@ -198,6 +202,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await batch.commit();
                 alert("All chores have been cleared.");
                 location.reload(); // Refresh the page to reflect changes
+
+                // Reset the overall progress bar after resetting chores
+                overallProgressBar.style.width = '0%';
             } catch (error) {
                 console.error("Error clearing chores:", error);
             }
