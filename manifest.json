@@ -2,7 +2,7 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "Chore Management",
+  "name": "Apartment Chores",
   "orientation": "any",
   "scope": "/",
   "short_name": "Chores",
@@ -10,12 +10,12 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "https://griggril000.github.io/Chore-Management/icons/android-chrome-192x192.png",
+      "src": "https://griggril000.github.io/Apartment-Chores/icons/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://griggril000.github.io/Chore-Management/icons/android-chrome-512x512.png",
+      "src": "https://griggril000.github.io/Apartment-Chores/icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
