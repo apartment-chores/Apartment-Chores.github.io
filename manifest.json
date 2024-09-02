@@ -19,5 +19,12 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "View my Chores",
+      "url": "/chore-lookup.html",
+      "description": "View chores you have been assigned"
+    }
   ]
 }
