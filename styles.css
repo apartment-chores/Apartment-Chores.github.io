@@ -38,12 +38,14 @@ h1 {
     /* Green color */
     color: #fff;
     cursor: pointer;
-    padding: 16px; /* Increased padding */
+    padding: 16px;
+    /* Increased padding */
     border: none;
     border-radius: 4px;
     text-align: left;
     font-size: 18px;
-    margin-bottom: 8px; /* Increased spacing */
+    margin-bottom: 8px;
+    /* Increased spacing */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -70,18 +72,22 @@ h1 {
 
 /* Panel styling */
 .panel {
-    padding: 16px; /* Increased padding */
+    padding: 16px;
+    /* Increased padding */
     background-color: #f1f1f1;
     display: none;
     border-radius: 4px;
-    margin-bottom: 12px; /* Increased spacing */
+    margin-bottom: 12px;
+    /* Increased spacing */
 }
 
 /* List item styling */
 li {
     background-color: #fff;
-    margin-bottom: 12px; /* Increased spacing */
-    padding: 16px; /* Increased padding */
+    margin-bottom: 12px;
+    /* Increased spacing */
+    padding: 16px;
+    /* Increased padding */
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -121,7 +127,8 @@ input[type="checkbox"] {
     /* Red color */
     color: white;
     border: none;
-    padding: 16px; /* Increased padding */
+    padding: 16px;
+    /* Increased padding */
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
@@ -132,6 +139,34 @@ input[type="checkbox"] {
 .reset-button:hover {
     background-color: #c62828;
     /* Darker red for hover state */
+}
+
+/* Footer styling */
+footer {
+    background-color: #f1f1f1;
+    padding: 10px 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+footer a {
+    color: #333;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: #007bff;
+    /* Blue color for hover effect */
+    text-decoration: underline;
+}
+
+footer a:focus {
+    outline: 2px solid #007bff;
+    /* Blue outline for focus state */
 }
 
 /* Dark mode styles */
@@ -175,6 +210,25 @@ input[type="checkbox"] {
     .reset-button:hover {
         background-color: #c62828;
     }
+
+    footer {
+        background-color: #2a2a2a;
+        border-top: 1px solid #444;
+    }
+
+    footer a {
+        color: #e0e0e0;
+    }
+
+    footer a:hover {
+        color: #66aaff;
+        /* Light blue color for hover effect in dark mode */
+    }
+
+    footer a:focus {
+        outline: 2px solid #66aaff;
+        /* Light blue outline for focus state in dark mode */
+    }
 }
 
 /* Media queries for larger screens */
@@ -190,5 +244,10 @@ input[type="checkbox"] {
 
     .accordion {
         font-size: 20px;
+    }
+
+    footer {
+        font-size: 16px;
+        /* Slightly larger font size on larger screens */
     }
 }
