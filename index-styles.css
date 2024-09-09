@@ -54,6 +54,23 @@ h1 {
     /* Inherit text color */
 }
 
+.progress-container {
+    width: 100%;
+    background-color: #f3f3f3;
+    border-radius: 25px;
+    margin: 20px 0;
+    height: 20px;
+    box-shadow: 0 3px 3px -2px gray;
+}
+
+.progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 25px;
+    transition: width 0.4s ease;
+}
+
 /* Accordion container */
 .accordion-container {
     display: flex;

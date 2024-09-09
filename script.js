@@ -102,15 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // Function to load and display chores for index.html
 async function loadChores() {
     const accordionContainer = document.getElementById('accordion-container');
-    if (!accordionContainer) return; // If element doesn't exist, exit
+    const progressBar = document.getElementById('chore-progress-bar');
+    if (!accordionContainer) return;
 
     // Load roommates from Firestore
     const roommatesSnapshot = await getDocs(collection(db, "roommates"));
     roommates = roommatesSnapshot.docs.map(doc => doc.data().name);
 
-    // Load and sort chores from Firestore
+    // Load chores from Firestore
     const choresSnapshot = await getDocs(collection(db, "chores"));
     const chores = {};
+    let totalChores = 0;
+    let completedChores = 0;
 
     choresSnapshot.forEach((doc) => {
         const data = doc.data();
@@ -121,7 +124,16 @@ async function loadChores() {
             ...data,
             id: doc.id
         });
+
+        totalChores++;
+        if (data.completed) {
+            completedChores++;
+        }
     });
+
+    // Update the progress bar based on completed chores
+    const completionRate = (completedChores / totalChores) * 100;
+    progressBar.style.width = `${completionRate}%`;
 
     // Sort categories alphabetically
     const sortedCategories = Object.keys(chores).sort();
@@ -135,7 +147,6 @@ async function loadChores() {
             const panel = document.createElement('div');
             panel.classList.add('panel');
 
-            // Sort chores within each category by the 'order' field
             const sortedChores = chores[category].sort((a, b) => (a.order || 0) - (b.order || 0));
 
             sortedChores.forEach(chore => {
@@ -152,14 +163,19 @@ async function loadChores() {
                         const choreRef = doc(db, "chores", chore.id);
                         await setDoc(choreRef, {
                             completed: checkbox.checked
-                        }, {
-                            merge: true
-                        });
+                        }, { merge: true });
+
                         if (checkbox.checked) {
                             li.classList.add('completed');
+                            completedChores++;
                         } else {
                             li.classList.remove('completed');
+                            completedChores--;
                         }
+
+                        const newCompletionRate = (completedChores / totalChores) * 100;
+                        progressBar.style.width = `${newCompletionRate}%`;
+
                     } catch (error) {
                         console.error("Error updating chore:", error);
                     }
@@ -201,9 +217,7 @@ async function loadChores() {
                         const choreRef = doc(db, "chores", chore.id);
                         await setDoc(choreRef, {
                             roommate: roommateSelect.value
-                        }, {
-                            merge: true
-                        });
+                        }, { merge: true });
                         chore.roommate = roommateSelect.value;
                     } catch (error) {
                         console.error("Error updating roommate:", error);
@@ -232,7 +246,6 @@ async function loadChores() {
         }
     });
 
-    // Reset Chores Functionality
     const resetButton = document.getElementById('reset-button');
     if (resetButton) {
         resetButton.addEventListener('click', async () => {
