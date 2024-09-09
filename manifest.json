@@ -10,12 +10,12 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "https://Apartment-Chores.github.io/icons/android-chrome-192x192.png",
+      "src": "/icons/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://Apartment-Chores.github.io/icons/android-chrome-512x512.png",
+      "src": "/icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
@@ -25,7 +25,7 @@
       "name": "View my Chores",
       "url": "/chore-lookup.html",
       "description": "View chores you have been assigned",
-      "icons": [{ "src": "https://Apartment-Chores.github.io/icons/android-chrome-512x512.png", "sizes": "512x512" }]
+      "icons": [{ "src": "/icons/android-chrome-512x512.png", "sizes": "512x512" }]
     }
   ]
 }
