@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadChores() {
     const accordionContainer = document.getElementById('accordion-container');
     const progressBar = document.getElementById('chore-progress-bar');
+    const progressPercentage = document.getElementById('progress-percentage');
     if (!accordionContainer) return;
 
     // Load roommates from Firestore
@@ -134,6 +135,7 @@ async function loadChores() {
     // Update the progress bar based on completed chores
     const completionRate = (completedChores / totalChores) * 100;
     progressBar.style.width = `${completionRate}%`;
+    progressPercentage.textContent = `${Math.round(completionRate)}%`;
 
     // Sort categories alphabetically
     const sortedCategories = Object.keys(chores).sort();
@@ -175,6 +177,7 @@ async function loadChores() {
 
                         const newCompletionRate = (completedChores / totalChores) * 100;
                         progressBar.style.width = `${newCompletionRate}%`;
+                        progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
 
                     } catch (error) {
                         console.error("Error updating chore:", error);
