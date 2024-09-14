@@ -126,13 +126,16 @@ async function loadChores() {
             id: doc.id
         });
 
-        totalChores++;
-        if (data.completed) {
-            completedChores++;
+        // Only count common area chores for the percentage calculation
+        if (data.commonArea) {
+            totalChores++;
+            if (data.completed) {
+                completedChores++;
+            }
         }
     });
 
-    // Update the progress bar based on completed chores
+    // Update the progress bar based on completed common area chores
     const completionRate = (completedChores / totalChores) * 100;
     progressBar.style.width = `${completionRate}%`;
     progressPercentage.textContent = `${Math.round(completionRate)}%`;
@@ -167,17 +170,20 @@ async function loadChores() {
                             completed: checkbox.checked
                         }, { merge: true });
 
-                        if (checkbox.checked) {
-                            li.classList.add('completed');
-                            completedChores++;
-                        } else {
-                            li.classList.remove('completed');
-                            completedChores--;
-                        }
+                        // Update only for common area chores
+                        if (chore.commonArea) {
+                            if (checkbox.checked) {
+                                li.classList.add('completed');
+                                completedChores++;
+                            } else {
+                                li.classList.remove('completed');
+                                completedChores--;
+                            }
 
-                        const newCompletionRate = (completedChores / totalChores) * 100;
-                        progressBar.style.width = `${newCompletionRate}%`;
-                        progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
+                            const newCompletionRate = (completedChores / totalChores) * 100;
+                            progressBar.style.width = `${newCompletionRate}%`;
+                            progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
+                        }
 
                     } catch (error) {
                         console.error("Error updating chore:", error);
