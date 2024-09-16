@@ -154,15 +154,20 @@ async function loadChores() {
 
             const sortedChores = chores[category].sort((a, b) => (a.order || 0) - (b.order || 0));
 
+            let allChoresCompleted = true; // Track if all chores in the category are complete
+
             sortedChores.forEach(chore => {
                 const li = document.createElement('li');
                 if (chore.completed) {
                     li.classList.add('completed');
+                } else {
+                    allChoresCompleted = false; // If any chore is not completed, set this to false
                 }
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.checked = chore.completed || false;
+
                 checkbox.addEventListener('change', async function () {
                     try {
                         const choreRef = doc(db, "chores", chore.id);
@@ -170,7 +175,6 @@ async function loadChores() {
                             completed: checkbox.checked
                         }, { merge: true });
 
-                        // Update UI for all chores (common and non-common)
                         if (checkbox.checked) {
                             li.classList.add('completed');
                         } else {
@@ -184,12 +188,13 @@ async function loadChores() {
                             } else {
                                 completedChores--;
                             }
-
                             const newCompletionRate = (completedChores / totalChores) * 100;
                             progressBar.style.width = `${newCompletionRate}%`;
                             progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
                         }
 
+                        // Recalculate completion status for the category
+                        updateAccordionStatus(category, accordionButton, chores[category]);
                     } catch (error) {
                         console.error("Error updating chore:", error);
                     }
@@ -244,9 +249,13 @@ async function loadChores() {
                 panel.appendChild(li);
             });
 
+            // If all chores in the category are completed, add the cross-out class
+            if (allChoresCompleted) {
+                accordionButton.classList.add('cross-out');
+            }
+
             accordionContainer.appendChild(accordionButton);
             accordionContainer.appendChild(panel);
-
             displayedCategories.add(category);
 
             accordionButton.addEventListener('click', function () {
@@ -284,5 +293,15 @@ async function loadChores() {
                 }
             }
         });
+    }
+}
+
+// Helper function to update accordion status based on chore completion
+function updateAccordionStatus(category, accordionButton, chores) {
+    const allCompleted = chores.every(chore => chore.completed);
+    if (allCompleted) {
+        accordionButton.classList.add('cross-out');
+    } else {
+        accordionButton.classList.remove('cross-out');
     }
 }
