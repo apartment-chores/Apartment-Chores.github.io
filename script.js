@@ -149,10 +149,6 @@ async function loadChores() {
             accordionButton.classList.add('accordion');
             accordionButton.textContent = category;
 
-            const checkmarkSpan = document.createElement('span');
-            checkmarkSpan.textContent = ''; // Checkmark placeholder
-            accordionButton.appendChild(checkmarkSpan);
-
             const panel = document.createElement('div');
             panel.classList.add('panel');
 
@@ -193,9 +189,6 @@ async function loadChores() {
                             progressBar.style.width = `${newCompletionRate}%`;
                             progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
                         }
-
-                        // Check if all chores in this category are completed
-                        updateAccordionCheckmark(category, chores[category], checkmarkSpan);
 
                     } catch (error) {
                         console.error("Error updating chore:", error);
@@ -264,9 +257,6 @@ async function loadChores() {
                     panel.style.display = "block";
                 }
             });
-
-            // Initial check to see if all chores in this category are completed
-            updateAccordionCheckmark(category, chores[category], checkmarkSpan);
         }
     });
 
@@ -295,10 +285,4 @@ async function loadChores() {
             }
         });
     }
-}
-
-// Function to update the accordion header with a checkmark if all chores are completed
-function updateAccordionCheckmark(category, categoryChores, checkmarkSpan) {
-    const allCompleted = categoryChores.every(chore => chore.completed);
-    checkmarkSpan.textContent = allCompleted ? '✔️' : ''; // Add or remove the checkmark
 }
