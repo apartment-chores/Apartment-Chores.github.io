@@ -170,13 +170,18 @@ async function loadChores() {
                             completed: checkbox.checked
                         }, { merge: true });
 
+                        // Update UI for all chores (common and non-common)
+                        if (checkbox.checked) {
+                            li.classList.add('completed');
+                        } else {
+                            li.classList.remove('completed');
+                        }
+
                         // Update only for common area chores
                         if (chore.commonArea) {
                             if (checkbox.checked) {
-                                li.classList.add('completed');
                                 completedChores++;
                             } else {
-                                li.classList.remove('completed');
                                 completedChores--;
                             }
 
