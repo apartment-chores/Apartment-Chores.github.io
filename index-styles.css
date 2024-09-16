@@ -102,12 +102,6 @@ h1 {
     /* Limit the accordion container width */
 }
 
-.accordion.cross-out {
-    text-decoration: line-through;
-    opacity: 0.7;
-    /* Optional: to indicate completion */
-}
-
 /* Accordion button styling */
 .accordion {
     background-color: #6e9a8d;
@@ -130,6 +124,13 @@ h1 {
 .accordion.active,
 .accordion:hover {
     background-color: #5b7b6f;
+}
+
+/* Style for when all chores in a category are completed */
+.accordion.cross-out {
+    text-decoration: line-through;
+    opacity: 0.7;
+    /* Optional: to indicate completion */
 }
 
 /* Arrow styling for accordion */
