@@ -2,15 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/fireba
 import { getFirestore, collection, getDocs, doc, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 // Your Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
-    authDomain: "apartment-chore.firebaseapp.com",
-    projectId: "apartment-chore",
-    storageBucket: "apartment-chore.appspot.com",
-    messagingSenderId: "929712450963",
-    appId: "1:929712450963:web:2667d71a01b28909110c66",
-    measurementId: "G-P2VYXYY665"
-};
+import firebaseConfig from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
