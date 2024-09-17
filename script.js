@@ -305,3 +305,4 @@ function updateAccordionStatus(category, accordionButton, chores) {
         accordionButton.classList.remove('cross-out');
     }
 }
+
