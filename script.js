@@ -3,13 +3,13 @@ import { getFirestore, collection, getDocs, doc, setDoc, writeBatch } from 'http
 
 // Your Firebase configuration
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID
+    apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+    authDomain: "apartment-chore.firebaseapp.com",
+    projectId: "apartment-chore",
+    storageBucket: "apartment-chore.appspot.com",
+    messagingSenderId: "929712450963",
+    appId: "1:929712450963:web:2667d71a01b28909110c66",
+    measurementId: "G-P2VYXYY665"
 };
 
 // Initialize Firebase
@@ -305,4 +305,3 @@ function updateAccordionStatus(category, accordionButton, chores) {
         accordionButton.classList.remove('cross-out');
     }
 }
-
