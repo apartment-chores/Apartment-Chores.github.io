@@ -3,7 +3,7 @@ import { getFirestore, collection, getDocs, doc, setDoc, writeBatch } from 'http
 
 // Your Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+    apiKey: process.env.FIREBASE_API_KEY,
     authDomain: "apartment-chore.firebaseapp.com",
     projectId: "apartment-chore",
     storageBucket: "apartment-chore.appspot.com",
