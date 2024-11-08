@@ -1,38 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartment Chores</title>
-    <link rel="icon" href="icons/android-chrome-512x512.png">
+    <meta name="description" content="Apartment Chores Management Application">
+    <meta name="theme-color" content="#6e9a8d">
+    <title>Apartment Chores Manager</title>
+    
+    <link rel="icon" href="icons/android-chrome-512x512.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="index-styles.css">
-    <link rel="manifest" href="manifest.json" />
+    <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
-    <div class="container">
-        <h1>Apartment Chores</h1>
-        <a href="chore-lookup.html"><button>View my Chores</button></a>
+    <main class="container">
+        <header class="fade-in">
+            <h1>Apartment Chores Manager</h1>
+            <nav>
+                <a href="chore-lookup.html" class="primary-button pulse">View my Chores</a>
+            </nav>
+        </header>
 
-        <div class="progress-container">
-            <div id="chore-progress-bar" class="progress-bar">
-                <span id="progress-percentage" class="progress-percentage">0%</span>
+        <section class="progress-section slide-in">
+            <h2 class="visually-hidden">Overall Progress</h2>
+            <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div id="chore-progress-bar" class="progress-bar">
+                    <span id="progress-percentage" class="progress-percentage" aria-live="polite">0%</span>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <div id="accordion-container" class="accordion-container"></div>
+        <section class="chores-section slide-in-delayed">
+            <h2 class="visually-hidden">Chore Categories</h2>
+            <div id="accordion-container" class="accordion-container"></div>
+        </section>
 
-        <!-- Button to reset chores to incomplete and remove assigned roommates -->
-        <button id="reset-button" class="reset-button">Reset All Chores</button>
-    </div>
+        <section class="actions-section fade-in-delayed">
+            <button id="reset-button" class="reset-button" aria-label="Reset all chores to incomplete">
+                Reset All Chores
+            </button>
+        </section>
+    </main>
 
     <footer>
-        <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by
-            Good Ware - Flaticon</a>
+        <p>
+            <a href="https://www.flaticon.com/free-icons/clean" 
+               title="clean icons" 
+               target="_blank"
+               rel="noopener noreferrer">
+                Clean icons created by Good Ware - Flaticon
+            </a>
+        </p>
     </footer>
 
     <script type="module" src="script.js"></script>
 </body>
-
 </html>
