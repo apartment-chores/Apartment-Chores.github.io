@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -64,10 +64,38 @@ async function displayChores(roommate) {
     filteredChores.forEach(chore => {
         const div = document.createElement('div');
         div.classList.add('chore-item');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = chore.completed || false;
+
+        checkbox.addEventListener('change', async function () {
+            try {
+                const choreRef = doc(db, "chores", chore.id);
+                await setDoc(choreRef, {
+                    completed: checkbox.checked
+                }, { merge: true });
+
+                if (checkbox.checked) {
+                    div.classList.add('completed');
+                } else {
+                    div.classList.remove('completed');
+                }
+            } catch (error) {
+                console.error("Error updating chore:", error);
+            }
+        });
+
+        const choreText = document.createElement('span');
+        choreText.textContent = chore.name;
+
+        div.appendChild(checkbox);
+        div.appendChild(choreText);
+
         if (chore.completed) {
             div.classList.add('completed');
         }
-        div.textContent = chore.name;
+
         choresList.appendChild(div);
     });
 
