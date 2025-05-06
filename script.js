@@ -1,67 +1,159 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, setDoc, writeBatch, query, where, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { auth, logOut, onAuthStateChanged } from './auth.js';
 
-// Your Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
-    authDomain: "apartment-chore.firebaseapp.com",
-    projectId: "apartment-chore",
-    storageBucket: "apartment-chore.appspot.com",
-    messagingSenderId: "929712450963",
-    appId: "1:929712450963:web:2667d71a01b28909110c66",
-    measurementId: "G-P2VYXYY665"
-};
+// Initialize Firestore
+const db = getFirestore();
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let roommates = [];
+let currentUser = null;
+let currentApartment = null;
+let apartmentMembers = [];
 const displayedCategories = new Set();
-const allowedRoommates = {
-    'Bathroom 1': new Set(['Xander', 'Spencer']),
-    'Bathroom 2': new Set(['Adam', 'Sam', 'Riley']),
-    'Bedroom 1': new Set(['Xander', 'Spencer']),
-    'Bedroom 2': new Set(['Adam']),
-    'Bedroom 3': new Set(['Riley', 'Sam'])
-};
+
+// Ensure user document exists in Firestore
+async function ensureUserDocument(user) {
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : "Unnamed");
+        await setDoc(userRef, {
+            email: user.email || "",
+            displayName: displayName,
+            createdAt: new Date().toISOString()
+        });
+    }
+}
+
+// Authentication functions
+async function signUp(email, password, displayName) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        // Set display name in Auth profile
+        await updateProfile(user, { displayName });
+        await setDoc(doc(db, "users", user.uid), {
+            email: email,
+            displayName: displayName,
+            createdAt: new Date().toISOString()
+        });
+        await ensureUserDocument(user); // Redundant but ensures user doc exists
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function signIn(email, password) {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await ensureUserDocument(user); // Ensure user doc exists on login
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Apartment management functions
+async function createApartment(name, address) {
+    try {
+        const apartmentRef = doc(collection(db, "apartments"));
+        await setDoc(apartmentRef, {
+            name: name,
+            address: address,
+            createdBy: currentUser.uid,
+            createdAt: new Date().toISOString(),
+            members: [currentUser.uid]
+        });
+        return apartmentRef.id;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function joinApartment(apartmentId) {
+    try {
+        const apartmentRef = doc(db, "apartments", apartmentId);
+        const apartmentDoc = await getDoc(apartmentRef);
+        
+        if (!apartmentDoc.exists()) {
+            throw new Error("Apartment not found");
+        }
+
+        const members = apartmentDoc.data().members || [];
+        if (!members.includes(currentUser.uid)) {
+            members.push(currentUser.uid);
+            await setDoc(apartmentRef, { members }, { merge: true });
+        }
+
+        currentApartment = apartmentId;
+        await loadApartmentMembers();
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function loadApartmentMembers() {
+    if (!currentApartment) return;
+    
+    const apartmentRef = doc(db, "apartments", currentApartment);
+    const apartmentDoc = await getDoc(apartmentRef);
+    const memberIds = apartmentDoc.data().members || [];
+    
+    apartmentMembers = [];
+    for (const memberId of memberIds) {
+        const userDoc = await getDoc(doc(db, "users", memberId));
+        if (userDoc.exists()) {
+            apartmentMembers.push({
+                id: memberId,
+                ...userDoc.data()
+            });
+        }
+    }
+}
 
 // Function to populate the dropdown menu on roommate-chores.html
 async function populateDropdown() {
     const roommateSelect = document.getElementById('roommate-select');
-    if (!roommateSelect) return; // If element doesn't exist, exit
+    if (!roommateSelect) return;
 
-    // Load roommates from Firestore
-    const roommatesSnapshot = await getDocs(collection(db, "roommates"));
-    roommates = roommatesSnapshot.docs.map(doc => doc.data().name);
+    // Clear existing options
+    roommateSelect.innerHTML = '';
 
-    // Populate dropdown options
-    roommates.forEach(roommate => {
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "Select a roommate";
+    roommateSelect.appendChild(defaultOption);
+
+    // Add apartment members to dropdown
+    apartmentMembers.forEach(member => {
         const option = document.createElement('option');
-        option.value = roommate;
-        option.textContent = roommate;
+        option.value = member.id;
+        option.textContent = member.displayName;
         roommateSelect.appendChild(option);
     });
 }
 
 // Function to display chores for the selected roommate
-async function displayChores(roommate) {
+async function displayChores(memberId) {
     const choresList = document.getElementById('chores-list');
-    if (!choresList) return; // If element doesn't exist, exit
+    if (!choresList) return;
 
-    choresList.innerHTML = ''; // Clear previous list
+    choresList.innerHTML = '';
 
-    if (!roommate) return; // If no roommate is selected, do nothing
+    if (!memberId) return;
 
-    // Load chores from Firestore
-    const choresSnapshot = await getDocs(collection(db, "chores"));
+    // Load chores from Firestore for current apartment
+    const choresQuery = query(
+        collection(db, "chores"),
+        where("apartmentId", "==", currentApartment),
+        where("assignedTo", "==", memberId)
+    );
+    const choresSnapshot = await getDocs(choresQuery);
     const chores = choresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Filter chores assigned to the selected roommate
-    const filteredChores = chores.filter(chore => chore.roommate === roommate);
-
     // Display chores
-    filteredChores.forEach(chore => {
+    chores.forEach(chore => {
         const div = document.createElement('div');
         div.classList.add('chore-item');
 
@@ -73,7 +165,8 @@ async function displayChores(roommate) {
             try {
                 const choreRef = doc(db, "chores", chore.id);
                 await setDoc(choreRef, {
-                    completed: checkbox.checked
+                    completed: checkbox.checked,
+                    completedAt: checkbox.checked ? new Date().toISOString() : null
                 }, { merge: true });
 
                 if (checkbox.checked) {
@@ -99,14 +192,14 @@ async function displayChores(roommate) {
         choresList.appendChild(div);
     });
 
-    if (filteredChores.length === 0) {
+    if (chores.length === 0) {
         const noChoresMessage = document.createElement('p');
         noChoresMessage.textContent = 'No chores assigned to this roommate.';
         choresList.appendChild(noChoresMessage);
     }
 }
 
-// Event listener for the "Find My Chores" button
+// Add event listener for the search button
 document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.getElementById('search-button');
     if (searchButton) {
@@ -115,221 +208,218 @@ document.addEventListener('DOMContentLoaded', () => {
             displayChores(selectedRoommate);
         });
     }
-
-    // Check if we're on the roommate-chores.html page
-    if (document.getElementById('roommate-select')) {
-        populateDropdown();
-    }
-
-    // Check if we're on the index.html page
-    if (document.getElementById('accordion-container')) {
-        loadChores();
-    }
 });
 
 // Function to load and display chores for index.html
 async function loadChores() {
     const accordionContainer = document.getElementById('accordion-container');
-    const progressBar = document.getElementById('chore-progress-bar');
-    const progressPercentage = document.getElementById('progress-percentage');
     if (!accordionContainer) return;
 
-    // Load roommates from Firestore
-    const roommatesSnapshot = await getDocs(collection(db, "roommates"));
-    roommates = roommatesSnapshot.docs.map(doc => doc.data().name);
+    // Clear existing content
+    accordionContainer.innerHTML = '';
 
     // Load chores from Firestore
-    const choresSnapshot = await getDocs(collection(db, "chores"));
-    const chores = {};
-    let totalChores = 0;
-    let completedChores = 0;
+    const choresQuery = query(
+        collection(db, "chores"),
+        where("apartmentId", "==", currentApartment)
+    );
+    const choresSnapshot = await getDocs(choresQuery);
+    const chores = choresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    choresSnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (!chores[data.category]) {
-            chores[data.category] = [];
+    // Group chores by category
+    const choresByCategory = {};
+    chores.forEach(chore => {
+        if (!choresByCategory[chore.category]) {
+            choresByCategory[chore.category] = [];
         }
-        chores[data.category].push({
-            ...data,
-            id: doc.id
-        });
-
-        // Only count common area chores for the percentage calculation
-        if (data.commonArea) {
-            totalChores++;
-            if (data.completed) {
-                completedChores++;
-            }
-        }
+        choresByCategory[chore.category].push(chore);
     });
 
-    // Update the progress bar based on completed common area chores
-    const completionRate = (completedChores / totalChores) * 100;
-    progressBar.style.width = `${completionRate}%`;
-    progressPercentage.textContent = `${Math.round(completionRate)}%`;
-
-    // Sort categories alphabetically
-    const sortedCategories = Object.keys(chores).sort();
-
-    sortedCategories.forEach(async category => {
-        if (!displayedCategories.has(category)) {
-            const accordionButton = document.createElement('button');
-            accordionButton.classList.add('accordion');
-            accordionButton.textContent = category;
-
-            const panel = document.createElement('div');
-            panel.classList.add('panel');
-
-            const sortedChores = chores[category].sort((a, b) => (a.order || 0) - (b.order || 0));
-
-            let allChoresCompleted = true; // Track if all chores in the category are complete
-
-            sortedChores.forEach(chore => {
-                const li = document.createElement('li');
-                if (chore.completed) {
-                    li.classList.add('completed');
-                } else {
-                    allChoresCompleted = false; // If any chore is not completed, set this to false
-                }
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = chore.completed || false;
-
-                checkbox.addEventListener('change', async function () {
-                    try {
-                        const choreRef = doc(db, "chores", chore.id);
-                        await setDoc(choreRef, {
-                            completed: checkbox.checked
-                        }, { merge: true });
-
-                        if (checkbox.checked) {
-                            li.classList.add('completed');
-                        } else {
-                            li.classList.remove('completed');
-                        }
-
-                        // Update only for common area chores
-                        if (chore.commonArea) {
-                            if (checkbox.checked) {
-                                completedChores++;
-                            } else {
-                                completedChores--;
-                            }
-                            const newCompletionRate = (completedChores / totalChores) * 100;
-                            progressBar.style.width = `${newCompletionRate}%`;
-                            progressPercentage.textContent = `${Math.round(newCompletionRate)}%`;
-                        }
-
-                        // Recalculate completion status for the category
-                        updateAccordionStatus(category, accordionButton, chores[category]);
-                    } catch (error) {
-                        console.error("Error updating chore:", error);
-                    }
-                });
-
-                const choreTextDiv = document.createElement('div');
-                choreTextDiv.classList.add('chore-text');
-                const choreTitle = document.createElement('strong');
-                choreTitle.textContent = chore.name;
-                choreTextDiv.appendChild(choreTitle);
-
-                const roommateSelect = document.createElement('select');
-                const defaultOption = document.createElement('option');
-                defaultOption.value = "";
-                defaultOption.textContent = "No one assigned";
-                roommateSelect.appendChild(defaultOption);
-
-                roommates.forEach(roommate => {
-                    const option = document.createElement('option');
-                    option.value = roommate;
-                    option.textContent = roommate;
-                    if (chore.roommate === roommate) {
-                        option.selected = true;
-                    }
-                    roommateSelect.appendChild(option);
-                });
-
-                roommateSelect.addEventListener('change', async function () {
-                    const selectedRoommate = roommateSelect.value;
-                    const allowed = allowedRoommates[category];
-
-                    if (allowed && !allowed.has(selectedRoommate)) {
-                        alert(`Only ${Array.from(allowed).join(', ')} can be assigned to ${category}.`);
-                        roommateSelect.value = ""; // Revert selection
-                        return;
-                    }
-
-                    try {
-                        const choreRef = doc(db, "chores", chore.id);
-                        await setDoc(choreRef, {
-                            roommate: roommateSelect.value
-                        }, { merge: true });
-                        chore.roommate = roommateSelect.value;
-                    } catch (error) {
-                        console.error("Error updating roommate:", error);
-                    }
-                });
-
-                li.appendChild(checkbox);
-                li.appendChild(choreTextDiv);
-                li.appendChild(roommateSelect);
-                panel.appendChild(li);
-            });
-
-            // If all chores in the category are completed, add the cross-out class
-            if (allChoresCompleted) {
-                accordionButton.classList.add('cross-out');
-            }
-
-            accordionContainer.appendChild(accordionButton);
-            accordionContainer.appendChild(panel);
-            displayedCategories.add(category);
-
-            accordionButton.addEventListener('click', function () {
-                this.classList.toggle('active');
-                if (panel.style.display === "block") {
-                    panel.style.display = "none";
-                } else {
-                    panel.style.display = "block";
-                }
-            });
-        }
-    });
-
-    const resetButton = document.getElementById('reset-button');
-    if (resetButton) {
-        resetButton.addEventListener('click', async () => {
-            const confirmation = confirm("Are you sure you want to reset all chores? This will unassign all roommates and mark all chores as incomplete.");
-            if (confirmation) {
+    // Create accordion sections for each category
+    for (const [category, categoryChores] of Object.entries(choresByCategory)) {
+        const section = document.createElement('div');
+        section.className = 'accordion-section';
+        
+        const header = document.createElement('div');
+        header.className = 'accordion-header';
+        header.textContent = category;
+        header.onclick = () => toggleSection(section);
+        
+        const content = document.createElement('div');
+        content.className = 'accordion-content';
+        
+        categoryChores.forEach(chore => {
+            const choreDiv = document.createElement('div');
+            choreDiv.className = 'chore-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = chore.completed || false;
+            checkbox.onchange = async () => {
                 try {
-                    const choresSnapshot = await getDocs(collection(db, "chores"));
-                    const batch = writeBatch(db);
-
-                    choresSnapshot.forEach((doc) => {
-                        batch.update(doc.ref, {
-                            roommate: "",
-                            completed: false
-                        });
-                    });
-
-                    await batch.commit();
-                    alert("All chores have been cleared.");
-                    location.reload(); // Refresh the page to reflect changes
+                    const choreRef = doc(db, "chores", chore.id);
+                    await setDoc(choreRef, {
+                        completed: checkbox.checked,
+                        completedAt: checkbox.checked ? new Date().toISOString() : null
+                    }, { merge: true });
+                    
+                    if (checkbox.checked) {
+                        choreDiv.classList.add('completed');
+                    } else {
+                        choreDiv.classList.remove('completed');
+                    }
+                    updateProgressBar();
                 } catch (error) {
-                    console.error("Error clearing chores:", error);
+                    console.error("Error updating chore:", error);
                 }
+            };
+            
+            const choreText = document.createElement('span');
+            choreText.textContent = chore.name;
+            
+            const roommateSelect = document.createElement('select');
+            roommateSelect.className = 'roommate-select';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Assign to...";
+            roommateSelect.appendChild(defaultOption);
+            
+            // Add roommates to dropdown
+            apartmentMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.displayName;
+                if (chore.assignedTo === member.id) {
+                    option.selected = true;
+                }
+                roommateSelect.appendChild(option);
+            });
+            
+            roommateSelect.onchange = async () => {
+                try {
+                    const choreRef = doc(db, "chores", chore.id);
+                    await setDoc(choreRef, {
+                        assignedTo: roommateSelect.value
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Error assigning chore:", error);
+                }
+            };
+            
+            choreDiv.appendChild(checkbox);
+            choreDiv.appendChild(choreText);
+            choreDiv.appendChild(roommateSelect);
+            
+            if (chore.completed) {
+                choreDiv.classList.add('completed');
             }
+            
+            content.appendChild(choreDiv);
         });
+        
+        section.appendChild(header);
+        section.appendChild(content);
+        accordionContainer.appendChild(section);
+    }
+    
+    updateProgressBar();
+}
+
+function toggleSection(section) {
+    const content = section.querySelector('.accordion-content');
+    content.style.display = content.style.display === 'none' ? 'block' : 'none';
+}
+
+async function updateProgressBar() {
+    const progressBar = document.getElementById('chore-progress-bar');
+    const progressPercentage = document.getElementById('progress-percentage');
+    
+    if (!progressBar || !progressPercentage) return;
+    
+    const choresQuery = query(
+        collection(db, "chores"),
+        where("apartmentId", "==", currentApartment)
+    );
+    const choresSnapshot = await getDocs(choresQuery);
+    const chores = choresSnapshot.docs.map(doc => doc.data());
+    
+    const totalChores = chores.length;
+    const completedChores = chores.filter(chore => chore.completed).length;
+    
+    const percentage = totalChores > 0 ? (completedChores / totalChores) * 100 : 0;
+    progressBar.style.width = `${percentage}%`;
+    progressPercentage.textContent = `${Math.round(percentage)}%`;
+}
+
+// Make handleLogout available globally
+window.handleLogout = async function() {
+    try {
+        await logOut();
+        window.location.href = 'auth.html';
+    } catch (error) {
+        console.error("Error signing out:", error);
+    }
+};
+
+async function loadUserData() {
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const userNameElement = document.getElementById('user-name');
+            if (userNameElement) {
+                userNameElement.textContent = userData.displayName;
+            }
+        }
+
+        // Load user's apartments
+        const apartmentsQuery = query(
+            collection(db, "apartments"),
+            where("members", "array-contains", currentUser.uid)
+        );
+        const apartmentsSnapshot = await getDocs(apartmentsQuery);
+        
+        if (!apartmentsSnapshot.empty) {
+            // For now, just use the first apartment
+            const apartment = apartmentsSnapshot.docs[0];
+            currentApartment = apartment.id;
+            
+            // Load apartment members
+            await loadApartmentMembers();
+            
+            // Load chores after members are loaded
+            await loadChores();
+        } else {
+            window.location.href = 'settings.html';
+        }
+    } catch (error) {
+        console.error("Error loading user data:", error);
     }
 }
 
-// Helper function to update accordion status based on chore completion
-function updateAccordionStatus(category, accordionButton, chores) {
-    const allCompleted = chores.every(chore => chore.completed);
-    if (allCompleted) {
-        accordionButton.classList.add('cross-out');
+// Check if user is signed in
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        await ensureUserDocument(user);
+        currentUser = user;
+        await loadUserData();
+        
+        // Check if we're on the roommate-chores.html page
+        if (document.getElementById('roommate-select')) {
+            await loadApartmentMembers();
+            await populateDropdown();
+        }
+
+        // Check if we're on the index.html page
+        if (document.getElementById('accordion-container')) {
+            await loadApartmentMembers();
+            await loadChores();
+        }
     } else {
-        accordionButton.classList.remove('cross-out');
+        window.location.href = 'auth.html';
     }
-}
+});
+
+export { signUp, signIn };

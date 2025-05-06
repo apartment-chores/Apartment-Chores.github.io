@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartment Chores - Authentication</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .auth-toggle a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .forgot-password a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            color: #4CAF50;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Apartment Chores</h1>
+    </div>
+
+    <div class="container">
+        <div class="auth-container">
+            <div id="signup-form" class="auth-form" style="display: none;">
+                <div class="auth-header">
+                    <h2>Create Account</h2>
+                    <p>Join your apartment's chore management system</p>
+                </div>
+                <div class="form-group">
+                    <label for="signup-name">Display Name</label>
+                    <input type="text" id="signup-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required>
+                </div>
+                <button class="btn" onclick="handleSignUp()">Sign Up</button>
+                <div class="auth-toggle">
+                    Already have an account? <a href="#" onclick="toggleAuthForm()">Sign In</a>
+                </div>
+                <div class="auth-toggle" style="margin-top: 0.5rem;">
+                    Need help? <a href="#" id="signupSupportLink" style="color: #4CAF50; text-decoration: none;">Contact Support</a>
+                </div>
+            </div>
+
+            <div id="signin-form" class="auth-form" style="display: flex;">
+                <div class="auth-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to manage your apartment chores</p>
+                </div>
+                <div class="form-group">
+                    <label for="signin-email">Email</label>
+                    <input type="email" id="signin-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <input type="password" id="signin-password" required>
+                </div>
+                <div class="forgot-password">
+                    <a href="#" onclick="handleForgotPassword()">Forgot Password?</a>
+                </div>
+                <button class="btn" onclick="handleSignIn()">Sign In</button>
+                <div class="auth-toggle">
+                    Don't have an account? <a href="#" onclick="toggleAuthForm()">Sign Up</a>
+                </div>
+                <div class="auth-toggle" style="margin-top: 0.5rem;">
+                    Need help? <a href="#" id="signinSupportLink" style="color: #4CAF50; text-decoration: none;">Contact Support</a>
+                </div>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { signUp, signIn, initAuthStateListener, resetPassword } from './auth.js';
+
+        // Initialize auth state listener
+        initAuthStateListener();
+
+        // Make functions available globally
+        window.signUp = signUp;
+        window.signIn = signIn;
+        window.resetPassword = resetPassword;
+
+        window.handleSignUp = async function() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            try {
+                await signUp(email, password, name);
+            } catch (error) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        };
+
+        window.handleSignIn = async function() {
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+
+            try {
+                await signIn(email, password);
+            } catch (error) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        };
+
+        window.handleForgotPassword = async function() {
+            const email = document.getElementById('signin-email').value;
+            const errorMessage = document.getElementById('error-message');
+            
+            if (!email) {
+                errorMessage.textContent = 'Please enter your email address first';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                await resetPassword(email);
+                errorMessage.textContent = 'Password reset email sent! Please check your inbox.';
+                errorMessage.style.display = 'block';
+                errorMessage.style.backgroundColor = '#d4edda';
+                errorMessage.style.borderColor = '#c3e6cb';
+                errorMessage.style.color = '#155724';
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                errorMessage.style.backgroundColor = '#f8d7da';
+                errorMessage.style.borderColor = '#f5c6cb';
+                errorMessage.style.color = '#721c24';
+            }
+        };
+
+        window.toggleAuthForm = function() {
+            const signupForm = document.getElementById('signup-form');
+            const signinForm = document.getElementById('signin-form');
+            const errorMessage = document.getElementById('error-message');
+
+            if (signupForm.style.display === 'none') {
+                signupForm.style.display = 'flex';
+                signinForm.style.display = 'none';
+            } else {
+                signupForm.style.display = 'none';
+                signinForm.style.display = 'flex';
+            }
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+        };
+
+        // Email obfuscation
+        function decodeEmail(encoded) {
+            return atob(encoded);
+        }
+
+        // Set up the support email links
+        document.getElementById('signinSupportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+
+        document.getElementById('signupSupportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+    </script>
+</body>
+</html> 

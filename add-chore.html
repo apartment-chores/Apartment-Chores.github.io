@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Chore - Apartment Chores</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #f6f6f6;
+        }
+        .header {
+            background: #53b34a;
+            color: #fff;
+            padding: 24px 0 18px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            margin: 0 0 0 24px;
+            font-size: 2.8rem;
+            font-weight: 600;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-right: 32px;
+        }
+        #user-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        #dashboard-button {
+            background: #fff;
+            color: #53b34a;
+            border: 1px solid #53b34a;
+            border-radius: 4px;
+            padding: 6px 18px;
+            font-size: 1rem;
+            margin-right: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        #dashboard-button:hover {
+            background: #e6f7e6;
+            color: #388e3c;
+        }
+        #logout-button {
+            font-size: 1rem;
+            padding: 6px 18px;
+        }
+        .container {
+            max-width: 540px;
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 36px 32px 28px 32px;
+        }
+        .apartment-form .form-group {
+            margin-bottom: 22px;
+        }
+        .apartment-form label {
+            font-weight: 600;
+            font-size: 1.08rem;
+        }
+        .apartment-form input[type="text"],
+        .apartment-form select,
+        .apartment-form textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+        .apartment-form textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .apartment-form .btn {
+            background: #53b34a;
+            color: #fff;
+            font-weight: 600;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 28px;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        .apartment-form .btn:hover {
+            background: #388e3c;
+        }
+        .checkbox-label {
+            font-weight: 500;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        fieldset {
+            border: 1.5px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 18px 20px 14px 20px;
+            margin-bottom: 28px;
+            background: #fafbfc;
+        }
+        legend {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #388e3c;
+            padding: 0 10px;
+            width: auto;
+        }
+        .accordion {
+            border-radius: 8px;
+            background: #fafbfc;
+            margin-bottom: 22px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .accordion-header {
+            cursor: pointer;
+            padding: 16px 20px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #388e3c;
+            border: none;
+            background: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .accordion-header:after {
+            content: '\25BC';
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+        .accordion-header.active:after {
+            transform: rotate(-180deg);
+        }
+        .accordion-content {
+            padding: 18px 20px 10px 20px;
+            display: none;
+        }
+        .accordion-content.open {
+            display: block;
+        }
+        .form-section {
+            padding: 18px 0 10px 0;
+        }
+        .form-section:not(:last-child) {
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 28px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Add New Chore</h1>
+        <div class="user-info">
+            <span id="user-name"></span>
+            <button id="dashboard-button" onclick="window.location.href='index.html'">Back to Dashboard</button>
+            <button class="btn" onclick="window.location.href='about-roommates.html'">About Roommates</button>
+            <button id="logout-button" class="btn btn-danger" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <form id="add-chore-form" class="apartment-form">
+            <div class="form-section">
+                <h3 style="color:#388e3c; font-size:1.15rem; font-weight:700; margin-bottom:18px;">Chore Details</h3>
+                <div class="form-group">
+                    <label for="chore-name">Chore Name</label>
+                    <input type="text" id="chore-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="chore-category">Category</label>
+                    <select id="chore-category" required>
+                        <option value="">Select a category</option>
+                        <option value="Kitchen">Kitchen</option>
+                        <option value="Living Room">Living Room</option>
+                        <option value="Bathroom">Bathroom</option>
+                        <option value="Bedroom">Bedroom</option>
+                        <option value="Common Areas">Common Areas</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="chore-description">Description (Optional)</label>
+                    <textarea id="chore-description"></textarea>
+                </div>
+            </div>
+            <div class="form-section">
+                <h3 style="color:#388e3c; font-size:1.15rem; font-weight:700; margin-bottom:18px;">Assignment</h3>
+                <div class="form-group">
+                    <label for="chore-assigned">Assign To</label>
+                    <select id="chore-assigned">
+                        <option value="">Unassigned</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-section" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                <div class="form-group">
+                    <button type="submit" class="btn">Add Chore</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" id="supportLink">Need help? Contact Support</a>
+            </div>
+            <div class="footer-attribution">
+                <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by Good Ware - Flaticon</a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, query, where, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+            authDomain: "apartment-chore.firebaseapp.com",
+            projectId: "apartment-chore",
+            storageBucket: "apartment-chore.appspot.com",
+            messagingSenderId: "929712450963",
+            appId: "1:929712450963:web:2667d71a01b28909110c66",
+            measurementId: "G-P2VYXYY665"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentApartment = null;
+        let apartmentMembers = [];
+
+        window.handleLogout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'auth.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
+
+        async function loadUserData() {
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                document.getElementById('user-name').textContent = userData.displayName;
+            }
+
+            // Load user's apartments
+            const apartmentsQuery = query(
+                collection(db, "apartments"),
+                where("members", "array-contains", currentUser.uid)
+            );
+            const apartmentsSnapshot = await getDocs(apartmentsQuery);
+            
+            if (!apartmentsSnapshot.empty) {
+                // For now, just use the first apartment
+                const apartment = apartmentsSnapshot.docs[0];
+                currentApartment = apartment.id;
+                await loadApartmentMembers();
+            } else {
+                window.location.href = 'settings.html';
+            }
+        }
+
+        async function loadApartmentMembers() {
+            if (!currentApartment) return;
+            
+            const apartmentRef = doc(db, "apartments", currentApartment);
+            const apartmentDoc = await getDoc(apartmentRef);
+            const memberIds = apartmentDoc.data().members || [];
+            
+            apartmentMembers = [];
+            for (const memberId of memberIds) {
+                const userDoc = await getDoc(doc(db, "users", memberId));
+                if (userDoc.exists()) {
+                    apartmentMembers.push({
+                        id: memberId,
+                        ...userDoc.data()
+                    });
+                }
+            }
+
+            // Populate the assigned to dropdown
+            const assignedSelect = document.getElementById('chore-assigned');
+            apartmentMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.displayName;
+                assignedSelect.appendChild(option);
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('add-chore-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const choreData = {
+                name: document.getElementById('chore-name').value,
+                category: document.getElementById('chore-category').value,
+                description: document.getElementById('chore-description').value,
+                assignedTo: document.getElementById('chore-assigned').value,
+                completed: false,
+                apartmentId: currentApartment,
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.uid
+            };
+
+            try {
+                const choreRef = doc(collection(db, "chores"));
+                await setDoc(choreRef, choreData);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error adding chore:", error);
+                alert("Error adding chore. Please try again.");
+            }
+        });
+
+        async function ensureUserDocument(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                const displayName = user.displayName || (user.email ? user.email.split('@')[0] : "Unnamed");
+                await setDoc(userRef, {
+                    email: user.email || "",
+                    displayName: displayName,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        }
+
+        // Check if user is signed in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await ensureUserDocument(user);
+                currentUser = user;
+                await loadUserData();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+    </script>
+    <script>
+        // Email obfuscation
+        function decodeEmail(encoded) {
+            return atob(encoded);
+        }
+
+        // Set up the support email link
+        document.getElementById('supportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+    </script>
+</body>
+</html> 

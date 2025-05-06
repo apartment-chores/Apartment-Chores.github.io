@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Your Roommates - Apartment Chores</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .roommates-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .roommate-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .roommate-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .roommate-avatar {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin-right: 1.5rem;
+        }
+
+        .roommate-info h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .roommate-info p {
+            margin: 0.5rem 0 0;
+            color: #666;
+        }
+
+        .roommate-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .detail-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .detail-section h3 {
+            color: #4CAF50;
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .detail-section p {
+            margin: 0;
+            color: #666;
+        }
+
+        .interests-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .interest-tag {
+            background: #e9ecef;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .no-roommates {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-roommates h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .no-roommates p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>About Your Roommates</h1>
+        <div class="user-info">
+            <button class="btn" onclick="window.location.href='index.html'">Back to Dashboard</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="roommates-container" class="roommates-container">
+            <!-- Roommate cards will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" id="supportLink">Need help? Contact Support</a>
+            </div>
+            <div class="footer-attribution">
+                <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by Good Ware - Flaticon</a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+            authDomain: "apartment-chore.firebaseapp.com",
+            projectId: "apartment-chore",
+            storageBucket: "apartment-chore.appspot.com",
+            messagingSenderId: "929712450963",
+            appId: "1:929712450963:web:2667d71a01b28909110c66",
+            measurementId: "G-P2VYXYY665"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Get initials from name
+        function getInitials(name) {
+            return name
+                .split(' ')
+                .map(word => word[0])
+                .join('')
+                .toUpperCase();
+        }
+
+        // Create roommate card HTML
+        function createRoommateCard(roommate) {
+            const initials = getInitials(roommate.displayName || 'Anonymous');
+            const interests = roommate.interests || [];
+            
+            return `
+                <div class="roommate-card">
+                    <div class="roommate-header">
+                        <div class="roommate-avatar">${initials}</div>
+                        <div class="roommate-info">
+                            <h2>${roommate.displayName || 'Anonymous'}</h2>
+                            ${roommate.emailVisibility ? `<p>${roommate.email}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="roommate-details">
+                        ${roommate.hometown ? `
+                            <div class="detail-section">
+                                <h3>Hometown</h3>
+                                <p>${roommate.hometown}</p>
+                            </div>
+                        ` : ''}
+                        ${roommate.bio ? `
+                            <div class="detail-section">
+                                <h3>About</h3>
+                                <p>${roommate.bio}</p>
+                            </div>
+                        ` : ''}
+                        ${interests.length > 0 ? `
+                            <div class="detail-section">
+                                <h3>Interests</h3>
+                                <div class="interests-list">
+                                    ${interests.map(interest => `
+                                        <span class="interest-tag">${interest}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${roommate.funFact ? `
+                            <div class="detail-section">
+                                <h3>Fun Fact</h3>
+                                <p>${roommate.funFact}</p>
+                            </div>
+                        ` : ''}
+                        ${roommate.phoneNumber ? `
+                            <div class="detail-section">
+                                <h3>Contact</h3>
+                                <p>${roommate.phoneNumber}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load roommate information
+        async function loadRoommates() {
+            const container = document.getElementById('roommates-container');
+            
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    window.location.href = 'auth.html';
+                    return;
+                }
+
+                // Get user's apartment
+                const apartmentsQuery = query(
+                    collection(db, "apartments"),
+                    where("members", "array-contains", currentUser.uid)
+                );
+                const apartmentsSnapshot = await getDocs(apartmentsQuery);
+                
+                if (apartmentsSnapshot.empty) {
+                    container.innerHTML = `
+                        <div class="no-roommates">
+                            <h2>No Roommates Found</h2>
+                            <p>You haven't joined an apartment yet. Join or create an apartment to see your roommates here.</p>
+                            <button class="btn" onclick="window.location.href='settings.html'">Go to Settings</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const apartment = apartmentsSnapshot.docs[0].data();
+                const memberIds = apartment.members;
+
+                // Get all roommate information
+                const roommatePromises = memberIds.map(async (memberId) => {
+                    const userDoc = await getDoc(doc(db, "users", memberId));
+                    return userDoc.data();
+                });
+
+                const roommates = await Promise.all(roommatePromises);
+                
+                // Sort roommates to show current user last
+                roommates.sort((a, b) => {
+                    if (a.uid === currentUser.uid) return 1;
+                    if (b.uid === currentUser.uid) return -1;
+                    return 0;
+                });
+
+                container.innerHTML = roommates.map(roommate => createRoommateCard(roommate)).join('');
+            } catch (error) {
+                console.error('Error loading roommates:', error);
+                container.innerHTML = `
+                    <div class="no-roommates">
+                        <h2>Error Loading Roommates</h2>
+                        <p>There was an error loading your roommates' information. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadRoommates();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+    </script>
+    <script>
+        // Email obfuscation
+        function decodeEmail(encoded) {
+            return atob(encoded);
+        }
+
+        // Set up the support email link
+        document.getElementById('supportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+    </script>
+</body>
+</html> 

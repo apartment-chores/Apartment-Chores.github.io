@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - Apartment Chores</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Apartment Management Styles */
+        .apartment-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .apartment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .apartment-toggle {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .apartment-list {
+            margin-top: 1rem;
+        }
+
+        .apartment-item {
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .apartment-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .apartment-info h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .apartment-info p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+
+        .apartment-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .leave-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .leave-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Success Message Styles */
+        .success-message {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            display: none;
+            color: #155724;
+        }
+
+        .success-message h3 {
+            margin: 0 0 1rem 0;
+            color: #155724;
+        }
+
+        .success-message p {
+            margin: 0.5rem 0;
+            color: #155724;
+        }
+
+        /* Settings Section Styles */
+        .settings-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus,
+        .form-group textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        /* Account Info Styles */
+        .account-info {
+            margin-top: 1rem;
+        }
+
+        .account-info p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+
+        .account-info strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Account Settings</h1>
+        <div class="user-info">
+            <button class="btn" onclick="window.location.href='index.html'">Back to Dashboard</button>
+            <button class="btn" onclick="window.location.href='about-roommates.html'">About Roommates</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="alert" class="alert"></div>
+
+        <div class="settings-section">
+            <h2>Apartment Management</h2>
+            <div id="create-form" class="apartment-form">
+                <h3>Create New Apartment</h3>
+                <div class="form-group">
+                    <label for="apartment-name">Apartment Name</label>
+                    <input type="text" id="apartment-name" required>
+                </div>
+                <button class="btn" onclick="handleCreateApartment()">Create Apartment</button>
+                <div class="apartment-toggle">
+                    Want to join an existing apartment? <button class="btn" onclick="toggleApartmentForm()">Join Apartment</button>
+                </div>
+            </div>
+
+            <div id="join-form" class="apartment-form" style="display: none;">
+                <h3>Join Apartment</h3>
+                <div class="form-group">
+                    <label for="apartment-code">Apartment Code</label>
+                    <input type="text" id="apartment-code" required>
+                </div>
+                <button class="btn" onclick="handleJoinApartment()">Join Apartment</button>
+                <div class="apartment-toggle">
+                    Want to create a new apartment? <button class="btn" onclick="toggleApartmentForm()">Create Apartment</button>
+                </div>
+            </div>
+
+            <div id="success-message" class="success-message">
+                <h3>Apartment Created Successfully!</h3>
+                <p>Your apartment code is: <span id="generated-code"></span></p>
+                <p>Share this code with your roommates so they can join.</p>
+                <button class="btn" onclick="window.location.href='index.html'">Go to Dashboard</button>
+            </div>
+
+            <div id="apartment-list" class="apartment-list" style="display: none;">
+                <h3>Your Apartment</h3>
+                <div id="apartments-container"></div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Profile Information</h2>
+            <div class="form-group">
+                <label for="displayName">Display Name</label>
+                <input type="text" id="displayName" placeholder="Your display name">
+            </div>
+            <div class="form-group">
+                <label for="hometown">Hometown (Optional)</label>
+                <input type="text" id="hometown" placeholder="Where are you from?">
+            </div>
+            <div class="form-group">
+                <label for="bio">Bio (Optional)</label>
+                <textarea id="bio" placeholder="Tell us about yourself..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="interests">Interests (Optional)</label>
+                <input type="text" id="interests" placeholder="What do you like to do? (comma separated)">
+            </div>
+            <div class="form-group">
+                <label for="funFact">Fun Fact (Optional)</label>
+                <input type="text" id="funFact" placeholder="Share something interesting about yourself!">
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number (Optional)</label>
+                <input type="tel" id="phoneNumber" placeholder="(XXX) XXX-XXXX" maxlength="14" oninput="formatPhoneNumber(this)">
+                <small class="form-text text-muted">Format: (XXX) XXX-XXXX</small>
+            </div>
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="emailVisibility">
+                    Show email to roommates
+                </label>
+            </div>
+            <button class="btn" onclick="updateProfile()">Update Profile</button>
+        </div>
+
+        <div class="settings-section">
+            <h2>Change Password</h2>
+            <div class="form-group">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm new password">
+            </div>
+            <button class="btn" onclick="updatePassword()">Change Password</button>
+        </div>
+
+        <div class="settings-section">
+            <h2>Account Information</h2>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p><strong>Account Created:</strong> <span id="accountCreated"></span></p>
+            <p><strong>Need Help?</strong> <a href="#" id="supportLink" style="color: #4CAF50; text-decoration: none;">Contact Support</a></p>
+        </div>
+
+        <div class="settings-section">
+            <button class="btn btn-danger" onclick="logOut()">Sign Out</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, updatePassword as updateUserPassword, updateProfile as updateUserProfile, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, query, where, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+            authDomain: "apartment-chore.firebaseapp.com",
+            projectId: "apartment-chore",
+            storageBucket: "apartment-chore.appspot.com",
+            messagingSenderId: "929712450963",
+            appId: "1:929712450963:web:2667d71a01b28909110c66",
+            measurementId: "G-P2VYXYY665"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        // Apartment Management Functions
+        window.handleCreateApartment = async function() {
+            const name = document.getElementById('apartment-name').value;
+
+            try {
+                // Check if user is already part of an apartment
+                const existingApartmentsQuery = query(
+                    collection(db, "apartments"),
+                    where("members", "array-contains", currentUser.uid)
+                );
+                const existingApartmentsSnapshot = await getDocs(existingApartmentsQuery);
+                
+                if (!existingApartmentsSnapshot.empty) {
+                    throw new Error("You are already part of an apartment. Please leave your current apartment before creating a new one.");
+                }
+
+                let code;
+                let isUnique = false;
+                
+                while (!isUnique) {
+                    code = Math.random().toString(36).substring(2, 8).toUpperCase();
+                    const existingQuery = query(
+                        collection(db, "apartments"),
+                        where("code", "==", code)
+                    );
+                    const existingSnapshot = await getDocs(existingQuery);
+                    
+                    if (existingSnapshot.empty) {
+                        isUnique = true;
+                    }
+                }
+                
+                const apartmentRef = doc(collection(db, "apartments"));
+                await setDoc(apartmentRef, {
+                    name: name,
+                    code: code,
+                    createdBy: currentUser.uid,
+                    createdAt: new Date().toISOString(),
+                    members: [currentUser.uid]
+                });
+
+                document.getElementById('create-form').style.display = 'none';
+                document.getElementById('join-form').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+                document.getElementById('generated-code').textContent = code;
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        window.handleJoinApartment = async function() {
+            const apartmentCode = document.getElementById('apartment-code').value.toUpperCase();
+
+            try {
+                // Check if user is already part of an apartment
+                const existingApartmentsQuery = query(
+                    collection(db, "apartments"),
+                    where("members", "array-contains", currentUser.uid)
+                );
+                const existingApartmentsSnapshot = await getDocs(existingApartmentsQuery);
+                
+                if (!existingApartmentsSnapshot.empty) {
+                    throw new Error("You are already part of an apartment. Please leave your current apartment before joining another one.");
+                }
+
+                const apartmentsQuery = query(
+                    collection(db, "apartments"),
+                    where("code", "==", apartmentCode)
+                );
+                const apartmentsSnapshot = await getDocs(apartmentsQuery);
+                
+                if (apartmentsSnapshot.empty) {
+                    throw new Error("Invalid apartment code");
+                }
+
+                const apartmentDoc = apartmentsSnapshot.docs[0];
+                const members = apartmentDoc.data().members || [];
+                
+                if (!members.includes(currentUser.uid)) {
+                    members.push(currentUser.uid);
+                    await setDoc(doc(db, "apartments", apartmentDoc.id), { members }, { merge: true });
+                }
+
+                window.location.href = 'index.html';
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        window.handleLeaveApartment = async function(apartmentId) {
+            try {
+                const apartmentRef = doc(db, "apartments", apartmentId);
+                const apartmentDoc = await getDoc(apartmentRef);
+                
+                if (!apartmentDoc.exists()) {
+                    throw new Error("Apartment not found");
+                }
+
+                const apartment = apartmentDoc.data();
+                const members = apartment.members || [];
+                
+                // Check if user is the last member
+                if (members.length === 1) {
+                    const confirmDelete = confirm("WARNING: You are the last member of this apartment. Leaving will permanently delete this apartment and all associated chores. Are you sure you want to continue?");
+                    if (!confirmDelete) {
+                        return;
+                    }
+                } else {
+                    const confirmLeave = confirm("Are you sure you want to leave this apartment?");
+                    if (!confirmLeave) {
+                        return;
+                    }
+                }
+                
+                const updatedMembers = members.filter(memberId => memberId !== currentUser.uid);
+                
+                if (updatedMembers.length === 0) {
+                    // First, delete all chores associated with this apartment
+                    const choresQuery = query(
+                        collection(db, "chores"),
+                        where("apartmentId", "==", apartmentId)
+                    );
+                    const choresSnapshot = await getDocs(choresQuery);
+                    
+                    // Delete each chore
+                    const deletePromises = choresSnapshot.docs.map(choreDoc => 
+                        deleteDoc(doc(db, "chores", choreDoc.id))
+                    );
+                    await Promise.all(deletePromises);
+                    
+                    // Then delete the apartment
+                    await deleteDoc(apartmentRef);
+                } else {
+                    await setDoc(apartmentRef, { members: updatedMembers }, { merge: true });
+                }
+
+                await loadUserApartments();
+                showAlert('Successfully left the apartment', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        window.toggleApartmentForm = function() {
+            const createForm = document.getElementById('create-form');
+            const joinForm = document.getElementById('join-form');
+            const errorMessage = document.getElementById('alert');
+
+            if (createForm.style.display === 'none') {
+                createForm.style.display = 'flex';
+                joinForm.style.display = 'none';
+            } else {
+                createForm.style.display = 'none';
+                joinForm.style.display = 'flex';
+            }
+            errorMessage.textContent = '';
+        };
+
+        async function loadUserApartments() {
+            const apartmentsQuery = query(
+                collection(db, "apartments"),
+                where("members", "array-contains", currentUser.uid)
+            );
+            const apartmentsSnapshot = await getDocs(apartmentsQuery);
+            
+            const apartmentsContainer = document.getElementById('apartments-container');
+            apartmentsContainer.innerHTML = '';
+
+            if (apartmentsSnapshot.empty) {
+                document.getElementById('apartment-list').style.display = 'none';
+                document.getElementById('create-form').style.display = 'flex';
+                document.getElementById('join-form').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('apartment-list').style.display = 'block';
+            document.getElementById('create-form').style.display = 'none';
+            document.getElementById('join-form').style.display = 'none';
+
+            apartmentsSnapshot.forEach((doc) => {
+                const apartment = doc.data();
+                const div = document.createElement('div');
+                div.className = 'apartment-item';
+                div.innerHTML = `
+                    <div class="apartment-info">
+                        <h3>${apartment.name}</h3>
+                        <p>Code: ${apartment.code}</p>
+                    </div>
+                    <div class="apartment-actions">
+                        <button class="btn" onclick="window.location.href='index.html'">Go to Dashboard</button>
+                        <button class="leave-button" onclick="handleLeaveApartment('${doc.id}')">Leave Apartment</button>
+                    </div>
+                `;
+                apartmentsContainer.appendChild(div);
+            });
+        }
+
+        // Phone number formatting function
+        window.formatPhoneNumber = function(input) {
+            // Remove all non-numeric characters
+            let number = input.value.replace(/\D/g, '');
+            
+            // Limit to 10 digits
+            number = number.substring(0, 10);
+            
+            // Format the number
+            let formattedNumber = '';
+            if (number.length > 0) {
+                formattedNumber = '(' + number.substring(0, 3);
+                if (number.length > 3) {
+                    formattedNumber += ') ' + number.substring(3, 6);
+                }
+                if (number.length > 6) {
+                    formattedNumber += '-' + number.substring(6, 10);
+                }
+            }
+            
+            input.value = formattedNumber;
+        };
+
+        // Validate phone number before saving
+        function validatePhoneNumber(phone) {
+            if (!phone) return true; // Empty is valid since it's optional
+            const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+            return phoneRegex.test(phone);
+        }
+
+        // Profile Management Functions
+        window.updateProfile = async function() {
+            const displayName = document.getElementById('displayName').value;
+            const hometown = document.getElementById('hometown').value;
+            const bio = document.getElementById('bio').value;
+            const interests = document.getElementById('interests').value;
+            const funFact = document.getElementById('funFact').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const emailVisibility = document.getElementById('emailVisibility').checked;
+
+            // Validate phone number
+            if (!validatePhoneNumber(phoneNumber)) {
+                showAlert('Please enter a valid phone number in the format (XXX) XXX-XXXX', 'error');
+                return;
+            }
+
+            try {
+                await updateUserProfile(currentUser, { displayName });
+                
+                // Update additional profile information in Firestore
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, {
+                    displayName,
+                    hometown,
+                    bio,
+                    interests: interests.split(',').map(i => i.trim()).filter(i => i),
+                    funFact,
+                    phoneNumber,
+                    emailVisibility,
+                    updatedAt: new Date().toISOString()
+                });
+
+                showAlert('Profile updated successfully!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        window.updatePassword = async function() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const user = auth.currentUser;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match!', 'error');
+                return;
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+                await updateUserPassword(user, newPassword);
+                
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+                showAlert('Password updated successfully!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        window.logOut = async function() {
+            try {
+                await auth.signOut();
+                window.location.href = 'auth.html';
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        };
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize auth state listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('displayName').value = userData.displayName || '';
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('accountCreated').textContent = new Date(userData.createdAt).toLocaleDateString();
+                    
+                    // Load additional profile fields
+                    document.getElementById('hometown').value = userData.hometown || '';
+                    document.getElementById('bio').value = userData.bio || '';
+                    document.getElementById('interests').value = userData.interests ? userData.interests.join(', ') : '';
+                    document.getElementById('funFact').value = userData.funFact || '';
+                    document.getElementById('phoneNumber').value = userData.phoneNumber || '';
+                    document.getElementById('emailVisibility').checked = userData.emailVisibility || false;
+                }
+                await loadUserApartments();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        // Email obfuscation
+        function decodeEmail(encoded) {
+            return atob(encoded);
+        }
+
+        // Set up the support email link
+        document.getElementById('supportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+    </script>
+</body>
+</html> 

@@ -6,14 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apartment Chores</title>
     <link rel="icon" href="icons/android-chrome-512x512.png">
-    <link rel="stylesheet" href="index-styles.css">
+    <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
-    <div class="container">
+    <div class="header">
         <h1>Apartment Chores</h1>
-        <a href="chore-lookup.html"><button>View my Chores</button></a>
+        <div class="user-info">
+            <span id="user-name"></span>
+            <button class="apartment-button button-outline-green" onclick="window.location.href='settings.html'" style="margin: 0 10px;">Account Settings</button>
+            <button id="logout-button" class="btn btn-danger" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="button-group">
+            <a href="chore-lookup.html"><button>View my Chores</button></a>
+            <button id="add-chore-button" class="btn" onclick="window.location.href='add-chore.html'">Add Chore</button>
+            <a href="about-roommates.html"><button>About Roommates</button></a>
+        </div>
 
         <div class="progress-container">
             <div id="chore-progress-bar" class="progress-bar">
@@ -28,11 +40,31 @@
     </div>
 
     <footer>
-        <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by
-            Good Ware - Flaticon</a>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" id="supportLink">Need help? Contact Support</a>
+            </div>
+            <div class="footer-attribution">
+                <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by Good Ware - Flaticon</a>
+            </div>
+        </div>
     </footer>
 
     <script type="module" src="script.js"></script>
+    <script>
+        // Email obfuscation
+        function decodeEmail(encoded) {
+            return atob(encoded);
+        }
+
+        // Set up the support email link
+        document.getElementById('supportLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            const encodedEmail = 'Z3JpZ2dyaWxleUBnbWFpbC5jb20='; // Base64 encoded email
+            const email = decodeEmail(encodedEmail);
+            window.location.href = 'mailto:' + email;
+        });
+    </script>
 </body>
 
 </html>

@@ -4,35 +4,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartment Chores - Chore Lookup</title>
+    <title>My Chores - Apartment Chores</title>
     <link rel="icon" href="icons/android-chrome-512x512.png">
-    <link rel="stylesheet" href="lookup-styles.css">
+    <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>Chore Lookup</h1>
-
-            <label for="roommate-select">Select your name:</label>
-            <select id="roommate-select">
-                <option value="">--Select a roommate--</option>
-                </select>
-
-            <button id="search-button">Find My Chores</button>
-
-            <div id="chores-list" class="chores-list"></div>
-
-            <a href="index.html"><button id="back-button" class="back-button">Back to Chore List</button></a>
+    <div class="header">
+        <h1>My Chores</h1>
+        <div class="user-info">
+            <span id="user-name"></span>
+            <button class="btn" onclick="window.location.href='index.html'">Back to Dashboard</button>
+            <button class="btn" onclick="window.location.href='about-roommates.html'">About Roommates</button>
+            <button class="btn btn-danger" onclick="logOut()">Logout</button>
         </div>
+    </div>
+
+    <div class="container">
+        <button id="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+        <div class="search-container">
+            <select id="roommate-select">
+                <option value="">Select a roommate</option>
+            </select>
+            <div class="form-group">
+                <button type="submit" class="btn">Search</button>
+            </div>
+        </div>
+
+        <div id="chores-list"></div>
     </div>
 
     <footer>
         <a href="https://www.flaticon.com/free-icons/clean" title="clean icons" target="_blank">Clean icons created by Good Ware - Flaticon</a>
     </footer>
 
-    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, query, where, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAup1H61VCuSBJDbofGVTArawNB-c3c6eU",
+            authDomain: "apartment-chore.firebaseapp.com",
+            projectId: "apartment-chore",
+            storageBucket: "apartment-chore.appspot.com",
+            messagingSenderId: "929712450963",
+            appId: "1:929712450963:web:2667d71a01b28909110c66",
+            measurementId: "G-P2VYXYY665"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentApartment = null;
+        let apartmentMembers = [];
+
+        window.handleLogout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'auth.html';
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        };
+
+        async function loadUserData() {
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                document.getElementById('user-name').textContent = userData.displayName;
+            }
+
+            // Load user's apartments
+            const apartmentsQuery = query(
+                collection(db, "apartments"),
+                where("members", "array-contains", currentUser.uid)
+            );
+            const apartmentsSnapshot = await getDocs(apartmentsQuery);
+            
+            if (!apartmentsSnapshot.empty) {
+                // For now, just use the first apartment
+                const apartment = apartmentsSnapshot.docs[0];
+                currentApartment = apartment.id;
+                await loadApartmentMembers();
+                await populateDropdown();
+            } else {
+                window.location.href = 'settings.html';
+            }
+        }
+
+        async function loadApartmentMembers() {
+            if (!currentApartment) return;
+            
+            const apartmentRef = doc(db, "apartments", currentApartment);
+            const apartmentDoc = await getDoc(apartmentRef);
+            const memberIds = apartmentDoc.data().members || [];
+            console.log('Apartment member IDs:', memberIds);
+            
+            apartmentMembers = [];
+            for (const memberId of memberIds) {
+                const userDoc = await getDoc(doc(db, "users", memberId));
+                if (userDoc.exists()) {
+                    apartmentMembers.push({
+                        id: memberId,
+                        ...userDoc.data()
+                    });
+                }
+            }
+            console.log('Apartment members loaded:', apartmentMembers);
+        }
+
+        async function populateDropdown() {
+            const roommateSelect = document.getElementById('roommate-select');
+            if (!roommateSelect) return;
+
+            // Clear existing options
+            roommateSelect.innerHTML = '';
+
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Select a roommate";
+            roommateSelect.appendChild(defaultOption);
+
+            // Add apartment members to dropdown
+            apartmentMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.displayName;
+                roommateSelect.appendChild(option);
+            });
+        }
+
+        async function displayChores(memberId) {
+            const choresList = document.getElementById('chores-list');
+            if (!choresList) return;
+
+            choresList.innerHTML = '';
+
+            if (!memberId) return;
+
+            // Load chores from Firestore for current apartment
+            const choresQuery = query(
+                collection(db, "chores"),
+                where("apartmentId", "==", currentApartment),
+                where("assignedTo", "==", memberId)
+            );
+            const choresSnapshot = await getDocs(choresQuery);
+            const chores = choresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Group chores by category
+            const choresByCategory = {};
+            chores.forEach(chore => {
+                if (!choresByCategory[chore.category]) {
+                    choresByCategory[chore.category] = [];
+                }
+                choresByCategory[chore.category].push(chore);
+            });
+
+            // Display chores by category
+            for (const [category, categoryChores] of Object.entries(choresByCategory)) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-section';
+                
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.textContent = category;
+                categoryDiv.appendChild(categoryHeader);
+
+                categoryChores.forEach(chore => {
+                    const div = document.createElement('div');
+                    div.className = 'chore-item';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = chore.completed || false;
+
+                    checkbox.addEventListener('change', async function () {
+                        try {
+                            const choreRef = doc(db, "chores", chore.id);
+                            await setDoc(choreRef, {
+                                completed: checkbox.checked,
+                                completedAt: checkbox.checked ? new Date().toISOString() : null
+                            }, { merge: true });
+
+                            if (checkbox.checked) {
+                                div.classList.add('completed');
+                            } else {
+                                div.classList.remove('completed');
+                            }
+                        } catch (error) {
+                            console.error("Error updating chore:", error);
+                        }
+                    });
+
+                    const choreText = document.createElement('span');
+                    choreText.textContent = chore.name;
+
+                    div.appendChild(checkbox);
+                    div.appendChild(choreText);
+
+                    if (chore.completed) {
+                        div.classList.add('completed');
+                    }
+
+                    categoryDiv.appendChild(div);
+                });
+
+                choresList.appendChild(categoryDiv);
+            }
+
+            if (chores.length === 0) {
+                const noChoresMessage = document.createElement('p');
+                noChoresMessage.textContent = 'No chores assigned to this roommate.';
+                choresList.appendChild(noChoresMessage);
+            }
+        }
+
+        // Event listener for the "Find My Chores" button
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchButton = document.getElementById('search-button');
+            if (searchButton) {
+                searchButton.addEventListener('click', () => {
+                    const selectedMemberId = document.getElementById('roommate-select').value;
+                    displayChores(selectedMemberId);
+                });
+            }
+        });
+
+        async function ensureUserDocument(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userRef);
+            if (!userDoc.exists()) {
+                const displayName = user.displayName || (user.email ? user.email.split('@')[0] : "Unnamed");
+                await setDoc(userRef, {
+                    email: user.email || "",
+                    displayName: displayName,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        }
+
+        // Check if user is signed in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await ensureUserDocument(user);
+                currentUser = user;
+                await loadUserData();
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+    </script>
 </body>
 
 </html>
